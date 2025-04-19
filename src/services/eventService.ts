@@ -8,6 +8,9 @@ export interface Event {
   time: string;
   icon: string;
   colorClass: string;
+  externalId?: string; // ID события в внешней системе (например, Яндекс Календарь)
+  description?: string; // Описание события
+  location?: string; // Место проведения
 }
 
 class EventService {

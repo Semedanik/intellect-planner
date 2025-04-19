@@ -41,6 +41,13 @@
             Фильтры
           </button>
           <button
+            @click="showYandexIntegration = !showYandexIntegration"
+            class="bg-white text-gray-700 px-4 py-2 rounded-md font-medium border border-gray-300 flex items-center"
+          >
+            <i class="fas fa-sync-alt mr-2"></i>
+            Яндекс Календарь
+          </button>
+          <button
             class="bg-indigo-600 text-white px-4 py-2 rounded-md font-medium flex items-center"
           >
             <i class="fas fa-plus mr-2"></i>
@@ -49,9 +56,14 @@
         </div>
       </div>
 
+      <!-- Интеграция с Яндекс Календарем (отображается по кнопке) -->
+      <div v-if="showYandexIntegration" class="mb-6">
+        <YandexCalendarIntegration @events-imported="handleImportedEvents" />
+      </div>
+
       <!-- Календарь -->
       <div class="mb-8">
-        <CalendarView />
+        <CalendarView :external-events="importedEvents" />
       </div>
 
       <!-- Предстоящие события -->
@@ -64,7 +76,7 @@
         >
           <ul class="divide-y divide-gray-200">
             <li
-              v-for="event in upcomingEvents"
+              v-for="event in allEvents"
               :key="event.id"
               class="p-4 hover:bg-gray-50"
             >
@@ -78,6 +90,10 @@
                       {{ event.title }}
                     </p>
                     <p class="text-sm text-gray-500">{{ event.type }}</p>
+                    <p v-if="event.location" class="text-xs text-gray-500">
+                      <i class="fas fa-map-marker-alt mr-1"></i>
+                      {{ event.location }}
+                    </p>
                   </div>
                 </div>
                 <div class="flex items-center">
@@ -99,10 +115,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import CalendarView from "@/components/calendar/CalendarView.vue";
+import YandexCalendarIntegration from "@/components/calendar/YandexCalendarIntegration.vue";
+import { Event } from "@/services";
+import { useEventStore } from "@/stores";
 
-// Предстоящие события
+const eventStore = useEventStore();
+const showYandexIntegration = ref(false);
+const importedEvents = ref<Event[]>([]);
+
+// Предстоящие события из хранилища
 const upcomingEvents = ref([
   {
     id: 1,
@@ -137,4 +160,14 @@ const upcomingEvents = ref([
     colorClass: "bg-green-100 text-green-600",
   },
 ]);
+
+// Объединяем все события - и локальные, и импортированные
+const allEvents = computed(() => {
+  return [...upcomingEvents.value, ...importedEvents.value];
+});
+
+// Обработчик импортированных событий
+const handleImportedEvents = (events: Event[]) => {
+  importedEvents.value = events;
+};
 </script>
