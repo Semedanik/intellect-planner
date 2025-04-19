@@ -1,0 +1,262 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Подготовка к экзамену по математике",
+      "description": "Повторить темы: интегралы, дифференциальные уравнения",
+      "dueDate": "2025-04-21",
+      "priority": "high",
+      "subject": "Математика",
+      "progress": 45,
+      "completed": false
+    },
+    {
+      "id": 2,
+      "title": "Лабораторная работа по физике",
+      "description": "Завершить расчеты и оформить отчет",
+      "dueDate": "2025-04-23",
+      "priority": "medium",
+      "subject": "Физика",
+      "progress": 70,
+      "completed": false
+    },
+    {
+      "id": 3,
+      "title": "Эссе по литературе",
+      "description": "Написать анализ произведения \"Война и мир\"",
+      "dueDate": "2025-04-25",
+      "priority": "medium",
+      "subject": "Литература",
+      "progress": 30,
+      "completed": false
+    },
+    {
+      "id": 4,
+      "title": "Проект по программированию",
+      "description": "Разработать алгоритм сортировки данных",
+      "dueDate": "2025-04-22",
+      "priority": "high",
+      "subject": "Программирование",
+      "progress": 20,
+      "completed": false
+    },
+    {
+      "id": 5,
+      "title": "Презентация по истории",
+      "description": "Подготовить слайды о Великой Отечественной войне",
+      "dueDate": "2025-04-27",
+      "priority": "low",
+      "subject": "История",
+      "progress": 10,
+      "completed": false
+    },
+    {
+      "id": 6,
+      "title": "Тест по английскому языку",
+      "description": "Повторить грамматику и лексику",
+      "dueDate": "2025-04-24",
+      "priority": "medium",
+      "subject": "Английский",
+      "progress": 55,
+      "completed": false
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "title": "Экзамен по математике",
+      "type": "Экзамен",
+      "date": "2025-04-21",
+      "time": "10:00",
+      "icon": "fas fa-book",
+      "colorClass": "bg-red-100 text-red-600"
+    },
+    {
+      "id": 2,
+      "title": "Встреча с научным руководителем",
+      "type": "Встреча",
+      "date": "2025-04-23",
+      "time": "14:30",
+      "icon": "fas fa-user",
+      "colorClass": "bg-blue-100 text-blue-600"
+    },
+    {
+      "id": 3,
+      "title": "Дедлайн проекта",
+      "type": "Дедлайн",
+      "date": "2025-04-25",
+      "time": "23:59",
+      "icon": "fas fa-clock",
+      "colorClass": "bg-yellow-100 text-yellow-600"
+    },
+    {
+      "id": 4,
+      "title": "Консультация перед экзаменом",
+      "type": "Учеба",
+      "date": "2025-04-26",
+      "time": "12:00",
+      "icon": "fas fa-chalkboard-teacher",
+      "colorClass": "bg-green-100 text-green-600"
+    }
+  ],
+  "subjects": [
+    {
+      "id": 1,
+      "name": "Математический анализ",
+      "teacher": "Иванов И.И.",
+      "color": "#4f46e5"
+    },
+    {
+      "id": 2,
+      "name": "Физика",
+      "teacher": "Петров П.П.",
+      "color": "#0ea5e9"
+    },
+    {
+      "id": 3,
+      "name": "Программирование",
+      "teacher": "Сидоров С.С.",
+      "color": "#10b981"
+    },
+    {
+      "id": 4,
+      "name": "Литература",
+      "teacher": "Михайлова М.М.",
+      "color": "#f59e0b"
+    },
+    {
+      "id": 5,
+      "name": "Английский язык",
+      "teacher": "Андреева А.А.",
+      "color": "#ef4444"
+    },
+    {
+      "id": 6,
+      "name": "История",
+      "teacher": "Викторов В.В.",
+      "color": "#8b5cf6"
+    }
+  ],
+  "classes": [
+    {
+      "id": 1,
+      "time": "09:00 - 10:30",
+      "day": "пн",
+      "subject": "Математический анализ",
+      "type": "Лекция",
+      "location": "Ауд. 302",
+      "subjectId": 1
+    },
+    {
+      "id": 2,
+      "time": "10:45 - 12:15",
+      "day": "пн",
+      "subject": "Физика",
+      "type": "Лабораторная",
+      "location": "Ауд. 205",
+      "subjectId": 2
+    },
+    {
+      "id": 3,
+      "time": "12:30 - 14:00",
+      "day": "пн",
+      "subject": "Программирование",
+      "type": "Практика",
+      "location": "Ауд. 404",
+      "subjectId": 3
+    },
+    {
+      "id": 4,
+      "time": "09:00 - 10:30",
+      "day": "вт",
+      "subject": "Английский язык",
+      "type": "Практика",
+      "location": "Ауд. 201",
+      "subjectId": 5
+    },
+    {
+      "id": 5,
+      "time": "10:45 - 12:15",
+      "day": "вт",
+      "subject": "Литература",
+      "type": "Лекция",
+      "location": "Ауд. 301",
+      "subjectId": 4
+    },
+    {
+      "id": 6,
+      "time": "14:15 - 15:45",
+      "day": "вт",
+      "subject": "История",
+      "type": "Семинар",
+      "location": "Ауд. 208",
+      "subjectId": 6
+    },
+    {
+      "id": 7,
+      "time": "10:45 - 12:15",
+      "day": "ср",
+      "subject": "Математический анализ",
+      "type": "Практика",
+      "location": "Ауд. 302",
+      "subjectId": 1
+    },
+    {
+      "id": 8,
+      "time": "12:30 - 14:00",
+      "day": "ср",
+      "subject": "Физика",
+      "type": "Лекция",
+      "location": "Ауд. 205",
+      "subjectId": 2
+    },
+    {
+      "id": 9,
+      "time": "09:00 - 10:30",
+      "day": "чт",
+      "subject": "Программирование",
+      "type": "Лекция",
+      "location": "Ауд. 404",
+      "subjectId": 3
+    },
+    {
+      "id": 10,
+      "time": "12:30 - 14:00",
+      "day": "чт",
+      "subject": "Английский язык",
+      "type": "Практика",
+      "location": "Ауд. 201",
+      "subjectId": 5
+    },
+    {
+      "id": 11,
+      "time": "09:00 - 10:30",
+      "day": "пт",
+      "subject": "История",
+      "type": "Лекция",
+      "location": "Ауд. 208",
+      "subjectId": 6
+    },
+    {
+      "id": 12,
+      "time": "10:45 - 12:15",
+      "day": "пт",
+      "subject": "Литература",
+      "type": "Семинар",
+      "location": "Ауд. 301",
+      "subjectId": 4
+    }
+  ],
+  "stats": {
+    "activeTasks": 12,
+    "urgentTasks": 3,
+    "completedToday": 5,
+    "productivity": 78,
+    "productivityData": [65, 72, 83, 76, 68, 78, 0]
+  },
+  "user": {
+    "name": "Анна",
+    "avatar": "/avatar.jpg",
+    "email": "anna@example.com"
+  }
+}
