@@ -1,5 +1,13 @@
 import { defineStore } from "pinia";
 import { eventService, Event } from "../services";
+import {
+  startOfDay,
+  parseISO,
+  isAfter,
+  isSameDay,
+  isWithinInterval,
+  addDays,
+} from "date-fns";
 
 interface EventState {
   events: Event[];
@@ -88,16 +96,55 @@ export const useEventStore = defineStore("events", {
 
   getters: {
     upcomingEvents: (state) => {
+      const today = startOfDay(new Date());
+
       // Сортировка по дате (от ближайших к дальним)
-      return [...state.events].sort((a, b) => {
-        const dateA = new Date(a.date + "T" + a.time);
-        const dateB = new Date(b.date + "T" + b.time);
-        return dateA.getTime() - dateB.getTime();
-      });
+      return [...state.events]
+        .filter((event) => {
+          const eventDate = parseISO(event.date);
+          return isAfter(eventDate, today) || isSameDay(eventDate, today);
+        })
+        .sort((a, b) => {
+          const dateA = new Date(a.date + "T" + a.time);
+          const dateB = new Date(b.date + "T" + b.time);
+          return dateA.getTime() - dateB.getTime();
+        });
     },
 
     eventsByDate: (state) => (date: string) => {
       return state.events.filter((event) => event.date === date);
+    },
+
+    eventsInRange: (state) => (startDate: Date, endDate: Date) => {
+      return state.events
+        .filter((event) => {
+          const eventDate = parseISO(event.date);
+          return isWithinInterval(eventDate, {
+            start: startDate,
+            end: endDate,
+          });
+        })
+        .sort((a, b) => {
+          const dateA = new Date(a.date + "T" + a.time);
+          const dateB = new Date(b.date + "T" + b.time);
+          return dateA.getTime() - dateB.getTime();
+        });
+    },
+
+    eventsThisWeek: (state) => {
+      const today = startOfDay(new Date());
+      const inAWeek = addDays(today, 7);
+
+      return state.events
+        .filter((event) => {
+          const eventDate = parseISO(event.date);
+          return isWithinInterval(eventDate, { start: today, end: inAWeek });
+        })
+        .sort((a, b) => {
+          const dateA = new Date(a.date + "T" + a.time);
+          const dateB = new Date(b.date + "T" + b.time);
+          return dateA.getTime() - dateB.getTime();
+        });
     },
   },
 });

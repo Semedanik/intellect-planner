@@ -1,6 +1,7 @@
 <template>
   <div
     class="bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow"
+    @click="$emit('click')"
   >
     <div class="flex justify-between items-start mb-2">
       <span :class="priorityBadgeClass">{{ priorityText }}</span>
@@ -8,12 +9,12 @@
     </div>
     <h3 class="font-semibold text-gray-900 mb-2">{{ title }}</h3>
     <p class="text-sm text-gray-600 mb-4">{{ description }}</p>
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center mb-2">
       <div class="flex items-center">
         <span
           class="inline-block px-2 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full"
         >
-          {{ subject }}
+          {{ category }}
         </span>
       </div>
       <div class="flex items-center">
@@ -26,6 +27,21 @@
         <span class="text-xs text-gray-600">{{ progress }}%</span>
       </div>
     </div>
+    <!-- Кнопки действий -->
+    <div class="flex justify-end space-x-2 mt-2 border-t pt-2">
+      <button
+        class="text-xs text-green-600 hover:text-green-800 flex items-center"
+        @click.stop="$emit('complete')"
+      >
+        <i class="fas fa-check-circle mr-1"></i> Выполнить
+      </button>
+      <button
+        class="text-xs text-red-600 hover:text-red-800 flex items-center"
+        @click.stop="$emit('delete')"
+      >
+        <i class="fas fa-trash-alt mr-1"></i> Удалить
+      </button>
+    </div>
   </div>
 </template>
 
@@ -33,13 +49,17 @@
 import { computed } from "vue";
 
 const props = defineProps({
+  id: { type: Number, required: true },
   title: { type: String, required: true },
   description: { type: String, required: true },
   dueDate: { type: String, required: true },
   priority: { type: String, required: true },
-  subject: { type: String, required: true },
+  category: { type: String, required: true },
   progress: { type: Number, required: true },
+  completed: { type: Boolean, default: false },
 });
+
+defineEmits(["click", "complete", "delete"]);
 
 const priorityBadgeClass = computed(() => {
   switch (props.priority) {

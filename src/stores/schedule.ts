@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { classService, subjectService, Class, Subject } from "../services";
+import { classService, categoryService, Class, Subject } from "../services";
 
 interface ScheduleState {
   classes: Class[];
@@ -37,7 +37,7 @@ export const useScheduleStore = defineStore("schedule", {
       this.isLoading = true;
       this.error = null;
       try {
-        this.subjects = await subjectService.getAll();
+        this.subjects = await categoryService.getAll();
       } catch (error) {
         if (error instanceof Error) {
           this.error = error.message;
@@ -107,7 +107,7 @@ export const useScheduleStore = defineStore("schedule", {
       this.isLoading = true;
       this.error = null;
       try {
-        const newSubject = await subjectService.create(subject);
+        const newSubject = await categoryService.create(subject);
         this.subjects.push(newSubject);
       } catch (error) {
         if (error instanceof Error) {
@@ -124,7 +124,7 @@ export const useScheduleStore = defineStore("schedule", {
       this.isLoading = true;
       this.error = null;
       try {
-        const updatedSubject = await subjectService.update(id, subjectData);
+        const updatedSubject = await categoryService.update(id, subjectData);
         const index = this.subjects.findIndex((s) => s.id === id);
         if (index !== -1) {
           this.subjects[index] = updatedSubject;
@@ -144,7 +144,7 @@ export const useScheduleStore = defineStore("schedule", {
       this.isLoading = true;
       this.error = null;
       try {
-        await subjectService.delete(id);
+        await categoryService.delete(id);
         this.subjects = this.subjects.filter((s) => s.id !== id);
       } catch (error) {
         if (error instanceof Error) {

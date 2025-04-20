@@ -1,13 +1,47 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
+// Создаем API клиент
 const apiClient = axios.create({
   baseURL,
   headers: {
     "Content-Type": "application/json",
   },
+  // Устанавливаем таймаут, чтобы не ждать вечно, если сервер недоступен
+  timeout: 5000,
 });
+
+// Проверка соединения с API
+export const checkApiConnection = async (): Promise<boolean> => {
+  try {
+    await apiClient.get("/");
+    return true;
+  } catch (error) {
+    console.warn("API сервер недоступен, используем локальное хранилище");
+    return false;
+  }
+};
+
+// Функция для получения данных из локального хранилища
+export const getLocalData = <T>(key: string, defaultValue: T): T => {
+  try {
+    const storedData = localStorage.getItem(key);
+    return storedData ? JSON.parse(storedData) : defaultValue;
+  } catch (error) {
+    console.error(`Ошибка при чтении из localStorage: ${key}`, error);
+    return defaultValue;
+  }
+};
+
+// Функция для сохранения данных в локальное хранилище
+export const saveLocalData = <T>(key: string, data: T): void => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error(`Ошибка при записи в localStorage: ${key}`, error);
+  }
+};
 
 // Добавляем перехватчик для добавления токена аутентификации
 apiClient.interceptors.request.use(
