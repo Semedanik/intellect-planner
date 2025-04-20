@@ -200,6 +200,34 @@ export const useTaskStore = defineStore("tasks", {
       }
     },
 
+    // Метод для очистки всех задач
+    async clearAllTasks() {
+      this.isLoading = true;
+      try {
+        // Очищаем локальное хранилище задач
+        taskService.clearLocalTasks();
+
+        // Очищаем задачи в хранилище состояния
+        this.tasks = [];
+        this.error = null;
+
+        // Удаляем соответствующие события из календаря
+        const eventStore = useEventStore();
+        const taskEvents = eventStore.events.filter(
+          (e) => e.externalId && e.externalId.startsWith("task-")
+        );
+
+        for (const event of taskEvents) {
+          await eventStore.deleteEvent(event.id);
+        }
+      } catch (error: any) {
+        this.error = error.message || "Не удалось очистить задачи";
+        console.error("Ошибка при очистке задач:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     async fetchStats() {
       this.isLoading = true;
       try {

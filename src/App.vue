@@ -9,12 +9,23 @@
 import { onMounted } from "vue";
 import MainNavigation from "./components/ui/MainNavigation.vue";
 import { useAuthStore } from "./stores/auth";
+import { useTaskStore } from "./stores/tasks";
 
 const authStore = useAuthStore();
+const taskStore = useTaskStore();
 
 onMounted(() => {
   // Инициализируем авторизацию при запуске приложения
   authStore.initialize();
+
+  // Проверяем, нужно ли очистить статичные данные при первом запуске
+  const hasCleanedStorage = localStorage.getItem("intellect_planner_cleaned");
+  if (!hasCleanedStorage) {
+    // Очищаем задачи
+    taskStore.clearAllTasks();
+    // Устанавливаем флаг, что очистка была выполнена
+    localStorage.setItem("intellect_planner_cleaned", "true");
+  }
 });
 </script>
 

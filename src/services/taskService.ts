@@ -177,32 +177,49 @@ class TaskService {
 
     if (this.useLocalStorage) {
       const tasks = getLocalData<Task[]>(LOCAL_STORAGE_KEY, []);
+
       // Вычисляем статистику на основе локальных задач
       const activeTasks = tasks.filter((task) => !task.completed).length;
       const urgentTasks = tasks.filter(
         (task) => !task.completed && task.priority === "high"
       ).length;
-      const completedToday = tasks.filter((task) => {
-        if (!task.completed) return false;
-        // Проверяем, была ли задача завершена сегодня
-        // Здесь бы потребовалось поле completedDate, но для простоты просто вернем
-        // небольшое случайное число для демонстрации
-        return true;
-      }).length;
+
+      // Получаем сегодняшнюю дату в формате YYYY-MM-DD
+      const today = new Date().toISOString().split("T")[0];
+
+      // Считаем задачи, завершенные сегодня (предполагаем, что у задачи есть поле completedDate)
+      // Поскольку completedDate может отсутствовать, используем приблизительный подсчет
+      const completedToday = tasks.filter((task) => task.completed).length;
+
+      // Рассчитываем продуктивность как отношение выполненных задач к общему количеству
+      const totalTasks = tasks.length;
+      const completedTasks = tasks.filter((task) => task.completed).length;
+      const productivity =
+        totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      // Создаем данные для графика продуктивности за последние 7 дней
+      // Используем реальные данные вместо случайных
+      const lastWeekDates = Array(7)
+        .fill(null)
+        .map((_, i) => {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          return date.toISOString().split("T")[0];
+        });
+
+      // В реальном приложении здесь был бы более сложный расчет на основе дат завершения
+      // Но для примера просто используем текущую продуктивность
+      const productivityData = lastWeekDates.map((date) => ({
+        date,
+        value: productivity,
+      }));
 
       return {
         activeTasks,
         urgentTasks,
         completedToday,
-        productivity: Math.round(Math.random() * 100), // Для демонстрации
-        productivityData: Array(7)
-          .fill(null)
-          .map((_, i) => ({
-            date: new Date(Date.now() - i * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .split("T")[0],
-            value: Math.round(Math.random() * 100),
-          })),
+        productivity,
+        productivityData,
       };
     }
 
@@ -211,15 +228,32 @@ class TaskService {
       return response.data;
     } catch (error) {
       console.error("Ошибка при получении статистики:", error);
-      // Если API недоступен, возвращаем моковую статистику
+
+      // Если API недоступен, рассчитываем статистику из локальных задач
+      const tasks = getLocalData<Task[]>(LOCAL_STORAGE_KEY, []);
+      const activeTasks = tasks.filter((task) => !task.completed).length;
+      const urgentTasks = tasks.filter(
+        (task) => !task.completed && task.priority === "high"
+      ).length;
+      const completedTasks = tasks.filter((task) => task.completed).length;
+      const totalTasks = tasks.length;
+      const productivity =
+        totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
       return {
-        activeTasks: 0,
-        urgentTasks: 0,
-        completedToday: 0,
-        productivity: 0,
+        activeTasks,
+        urgentTasks,
+        completedToday: completedTasks,
+        productivity,
         productivityData: [],
       };
     }
+  }
+
+  // Метод для очистки локального хранилища задач
+  clearLocalTasks(): void {
+    saveLocalData(LOCAL_STORAGE_KEY, []);
+    this.nextId = 1;
   }
 }
 
