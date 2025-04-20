@@ -1,0 +1,14 @@
+{
+  "name": "intellect-planner-api",
+  "version": "1.0.0",
+  "description": "API for Intellect Planner",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs"
+  },
+  "dependencies": {
+    "json-server": "^0.17.4",
+    "cors": "^2.8.5"
+  },
+  "type": "commonjs"
+}

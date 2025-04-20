@@ -6,6 +6,7 @@ export { default as classService } from "./classService";
 export { default as statService } from "./statService";
 export { default as authService } from "./authService";
 export { default as yandexCalendarService } from "./yandexCalendarService";
+export { aiService } from "./aiService";
 
 // Также экспортируем интерфейсы
 export type { Task } from "./taskService";
@@ -19,3 +20,4 @@ export type {
   YandexCalendarEvent,
   YandexCalendarConfig,
 } from "./yandexCalendarService";
+export type { AiRecommendation, ChatMessage } from "./aiService";

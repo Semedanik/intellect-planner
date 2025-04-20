@@ -221,6 +221,11 @@
             </div>
           </div>
         </div>
+
+        <!-- Рекомендации нейропомощника -->
+        <div class="mb-8">
+          <NeuroRecommendations />
+        </div>
       </div>
 
       <!-- Раздел для неавторизованных пользователей -->
@@ -275,6 +280,11 @@
           </div>
         </div>
 
+        <!-- Рекомендации нейропомощника для неавторизованных пользователей -->
+        <div class="mt-8 mb-8">
+          <NeuroRecommendations />
+        </div>
+
         <div class="flex justify-center mt-10">
           <button
             @click="openAuthModal"
@@ -293,6 +303,9 @@
     @close="closeAuthModal"
     @auth-success="handleAuthSuccess"
   />
+
+  <!-- Кнопка и чат нейропомощника -->
+  <NeuroChat />
 </template>
 
 <script setup lang="ts">
@@ -304,6 +317,8 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import * as echarts from "echarts";
 import AuthModal from "@/components/ui/AuthModal.vue";
+import NeuroRecommendations from "@/components/ai/NeuroRecommendations.vue";
+import NeuroChat from "@/components/ai/NeuroChat.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
