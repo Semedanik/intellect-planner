@@ -31,11 +31,14 @@ export const taskToEvent = (task: Task): Omit<Event, "id"> => {
     icon = "fas fa-exclamation";
   }
 
+  // Проверяем наличие времени, иначе устанавливаем 09:00 по умолчанию
+  const eventTime = task.time && task.time.trim() !== "" ? task.time : "09:00";
+
   return {
     title: task.title,
     type: "task",
     date: task.dueDate,
-    time: task.time || "09:00", // Используем время из задачи или по умолчанию
+    time: eventTime,
     icon,
     colorClass,
     description: task.description,

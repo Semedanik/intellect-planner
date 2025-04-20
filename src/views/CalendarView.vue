@@ -480,6 +480,24 @@ const syncTasksWithCalendar = async () => {
     console.log("Синхронизация задач с календарем...");
     console.log("Количество задач:", taskStore.tasks.length);
 
+    // Сначала удаляем все существующие события от задач, которые больше не существуют
+    const taskEvents = eventStore.events.filter(
+      (event) => event.externalId && event.externalId.startsWith("task-")
+    );
+
+    for (const event of taskEvents) {
+      // Поскольку мы уже проверили наличие event.externalId в фильтре выше,
+      // мы можем быть уверены, что externalId существует
+      const taskId = parseInt(event.externalId!.replace("task-", ""));
+      // Проверяем, существует ли все еще задача
+      const taskExists = taskStore.tasks.some((task) => task.id === taskId);
+
+      if (!taskExists) {
+        console.log(`Удаляем событие для удаленной задачи: ${event.title}`);
+        await eventStore.deleteEvent(event.id);
+      }
+    }
+
     // Перебираем все задачи
     for (const task of taskStore.tasks) {
       // Пропускаем задачи без срока
@@ -505,7 +523,20 @@ const syncTasksWithCalendar = async () => {
 
         await eventStore.addEvent(eventData);
       } else {
-        console.log(`Событие для задачи ${task.title} уже существует`);
+        // Проверяем, нужно ли обновить событие
+        const needsUpdate =
+          existingEvent.title !== task.title ||
+          existingEvent.date !== task.dueDate ||
+          (task.time && existingEvent.time !== task.time) ||
+          existingEvent.description !== task.description;
+
+        if (needsUpdate) {
+          console.log(`Обновляем событие для задачи ${task.title}`);
+          const eventData = taskToEvent(task);
+          await eventStore.updateEvent(existingEvent.id, eventData);
+        } else {
+          console.log(`Событие для задачи ${task.title} актуально`);
+        }
       }
     }
 

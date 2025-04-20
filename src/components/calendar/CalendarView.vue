@@ -132,12 +132,22 @@
                 v-for="event in getEventsForHour(hour)"
                 :key="event.id"
                 :class="[
-                  'px-2 py-1 text-xs rounded-md font-medium',
-                  getEventClass(event),
+                  'px-2 py-1 text-xs rounded-md font-medium mb-1',
+                  event.colorClass || getEventClass(event),
                 ]"
                 @click.stop="$emit('event-click', event)"
               >
-                {{ event.title }}
+                <div class="flex items-center">
+                  <i v-if="event.icon" :class="event.icon + ' mr-1'"></i>
+                  <span>{{ event.title }}</span>
+                </div>
+                <div
+                  v-if="event.description"
+                  class="text-xs text-gray-600 mt-1"
+                >
+                  {{ event.description.slice(0, 50)
+                  }}{{ event.description.length > 50 ? "..." : "" }}
+                </div>
               </div>
             </div>
           </div>
@@ -195,6 +205,9 @@ interface CalendarEvent {
   type: string;
   time?: string;
   externalId?: string;
+  colorClass?: string;
+  icon?: string;
+  description?: string;
 }
 
 interface CalendarDay {
@@ -304,6 +317,9 @@ const getExternalCalendarEvents = (): Record<string, CalendarEvent[]> => {
       type: event.type,
       time: event.time,
       externalId: event.externalId,
+      colorClass: event.colorClass,
+      icon: event.icon,
+      description: event.description,
     });
   });
 
@@ -331,11 +347,21 @@ const getEventsForHour = (hour: number) => {
   const events = props.externalEvents.filter((event) => {
     if (event.date !== today) return false;
 
+    // Если время отсутствует, но это задача, отобразим её в 9:00
+    if (
+      !event.time &&
+      (event.type === "task" ||
+        (event.externalId && event.externalId.startsWith("task-")))
+    ) {
+      return hour === 9; // По умолчанию отображаем такие задачи в 9:00
+    }
+
     // Извлекаем час из времени события
     try {
-      const [eventHour] = event.time.split(":").map(Number);
+      const [eventHour] = (event.time || "00:00").split(":").map(Number);
       return eventHour === hour;
     } catch (e) {
+      console.error("Ошибка при разборе времени события:", e);
       return false;
     }
   });
@@ -362,7 +388,10 @@ const weekView = computed(() => {
         day.getDate() === today.getDate() &&
         day.getMonth() === today.getMonth() &&
         day.getFullYear() === today.getFullYear(),
-      events: props.externalEvents.filter((event) => event.date === dateKey),
+      events: props.externalEvents.filter((event) => {
+        // Проверяем, совпадает ли дата события с текущим днем
+        return event.date === dateKey;
+      }),
     });
   }
 
