@@ -18,7 +18,7 @@ export interface TaskState {
 }
 
 // Вспомогательная функция для преобразования задачи в событие календаря
-const taskToEvent = (task: Task): Omit<Event, "id"> => {
+export const taskToEvent = (task: Task): Omit<Event, "id"> => {
   // Определяем цвет и иконку в зависимости от приоритета
   let colorClass = "bg-green-100 text-green-800";
   let icon = "fas fa-tasks";

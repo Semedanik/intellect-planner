@@ -79,22 +79,56 @@ onMounted(async () => {
     try {
       await Promise.all([taskStore.fetchTasks(), eventStore.fetchEvents()]);
 
-      // Загружаем существующие рекомендации
-      const existingRecommendations = await aiService.getRecommendations(
-        authStore.user.id
-      );
+      // Подготавливаем данные для запроса к API
+      const userData = {
+        tasks: taskStore.tasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          category: task.category,
+          priority: task.priority,
+          dueDate: task.dueDate,
+          completed: task.completed,
+          progress: task.progress,
+        })),
+        events: eventStore.events,
+        stats: taskStore.stats,
+        preferences: {
+          // Можно добавить пользовательские предпочтения, если они есть
+          studyTime: "any", // По умолчанию
+        },
+      };
 
-      // Если рекомендаций нет или их мало, генерируем новые
-      if (existingRecommendations.length < 3) {
-        // Генерируем новые рекомендации
-        recommendations.value = await aiService.generateRecommendations(
-          authStore.user.id,
-          taskStore.tasks,
-          eventStore.events
+      // Запрос к серверному API для получения рекомендаций
+      const response = await fetch("/api/ai/recommendations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: authStore.user.id,
+          userData,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Server responded with ${response.status}: ${response.statusText}`
         );
-      } else {
-        recommendations.value = existingRecommendations;
       }
+
+      const data = await response.json();
+
+      // Преобразуем массив строк в массив объектов AiRecommendation
+      recommendations.value = data.recommendations.map(
+        (text: string, index: number) => ({
+          id: Date.now() + index,
+          userId: authStore.user?.id || 0,
+          text,
+          type: "study" as const, // По умолчанию - тип "study"
+          createdAt: new Date().toISOString(),
+          applied: false,
+        })
+      );
     } catch (error) {
       console.error("Ошибка при загрузке рекомендаций:", error);
 

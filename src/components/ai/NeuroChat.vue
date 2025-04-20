@@ -140,6 +140,16 @@ const sendMessage = async () => {
   // Получаем текст вопроса
   const userMessage = userInput.value;
 
+  // Добавляем сообщение пользователя в UI для моментального отображения
+  messages.value.push({
+    id: Date.now(),
+    userId,
+    text: userMessage,
+    isUser: true,
+    createdAt: new Date().toISOString(),
+    sessionId: sessionId.value,
+  });
+
   // Очищаем поле ввода и показываем загрузку
   userInput.value = "";
   isLoading.value = true;
@@ -149,28 +159,49 @@ const sendMessage = async () => {
   scrollToBottom();
 
   try {
-    // Получаем ответ от сервиса AI
-    await aiService.getAiResponse(userId, userMessage, sessionId.value);
+    // Формируем историю чата в формате для API OpenAI
+    const history = messages.value
+      .slice(-10) // Берем последние 10 сообщений для контекста
+      .map((msg) => ({
+        role: msg.isUser ? "user" : "assistant",
+        content: msg.text,
+      }));
 
-    // Обновляем сообщения
-    const updatedMessages = await aiService.getChatMessages(
-      userId,
-      sessionId.value
-    );
-    messages.value = updatedMessages;
-  } catch (error) {
-    console.error("Ошибка при отправке сообщения:", error);
+    // Отправляем запрос к серверному API
+    const response = await fetch("/api/ai/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        message: userMessage,
+        sessionId: sessionId.value,
+        history,
+      }),
+    });
 
-    // Если произошла ошибка, добавляем локально сообщения для UI
+    if (!response.ok) {
+      throw new Error(
+        `Server responded with ${response.status}: ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+
+    // Добавляем ответ от AI
     messages.value.push({
-      id: Date.now(),
+      id: Date.now() + 1,
       userId,
-      text: userMessage,
-      isUser: true,
+      text: data.response,
+      isUser: false,
       createdAt: new Date().toISOString(),
       sessionId: sessionId.value,
     });
+  } catch (error) {
+    console.error("Ошибка при отправке сообщения:", error);
 
+    // Если произошла ошибка, добавляем сообщение об ошибке
     messages.value.push({
       id: Date.now() + 1,
       userId,
