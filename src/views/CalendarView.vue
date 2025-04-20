@@ -143,6 +143,69 @@
           </ul>
         </div>
       </div>
+
+      <!-- Предстоящие дедлайны -->
+      <div class="mb-8" v-if="upcomingTasks.length > 0">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+          Предстоящие дедлайны
+        </h2>
+        <div
+          class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <ul class="divide-y divide-gray-200">
+            <li
+              v-for="task in upcomingTasks"
+              :key="task.id"
+              class="p-4 hover:bg-gray-50"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <div
+                    class="p-2 rounded-full"
+                    :class="getPriorityClass(task.priority)"
+                  >
+                    <i :class="getPriorityIcon(task.priority)"></i>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900">
+                      {{ task.title }}
+                    </p>
+                    <p class="text-sm text-gray-500">{{ task.category }}</p>
+                    <p class="text-xs text-gray-500">
+                      <i class="fas fa-flag mr-1"></i>
+                      {{ getPriorityText(task.priority) }}
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center">
+                  <div class="text-sm text-gray-600 font-medium">
+                    <i class="fas fa-calendar-day mr-1"></i>
+                    {{ formatDate(task.dueDate) }}
+                    <span v-if="task.time">, {{ task.time }}</span>
+                  </div>
+                  <button
+                    class="ml-2 text-gray-400 hover:text-gray-500"
+                    @click="handleTaskEdit(task)"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </div>
+              </div>
+              <div v-if="task.progress > 0" class="mt-2">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    class="bg-indigo-600 h-2 rounded-full"
+                    :style="{ width: `${task.progress}%` }"
+                  ></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1 text-right">
+                  Прогресс: {{ task.progress }}%
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
     </main>
 
     <!-- Модальное окно для добавления/редактирования события -->
@@ -163,7 +226,9 @@ import CalendarView from "@/components/calendar/CalendarView.vue";
 import YandexCalendarIntegration from "@/components/calendar/YandexCalendarIntegration.vue";
 import EventModal from "@/components/calendar/EventModal.vue";
 import type { Event } from "@/services";
-import { useEventStore } from "@/stores";
+import type { Task } from "@/services/taskService";
+import { useEventStore, useTaskStore } from "@/stores";
+import { taskToEvent } from "@/stores/tasks";
 import {
   format,
   addDays,
@@ -173,10 +238,12 @@ import {
   startOfDay,
   isAfter,
   parseISO,
+  subDays,
 } from "date-fns";
 import { ru } from "date-fns/locale";
 
 const eventStore = useEventStore();
+const taskStore = useTaskStore();
 const showYandexIntegration = ref(false);
 const importedEvents = ref<Event[]>([]);
 const viewMode = ref<"day" | "week" | "month">("month");
@@ -187,10 +254,19 @@ const selectedTime = ref("09:00");
 
 // Загружаем события при монтировании компонента
 onMounted(async () => {
-  // Загружаем события
-  if (eventStore.events.length === 0) {
-    await eventStore.fetchEvents();
-  }
+  console.log("Загрузка данных для календаря...");
+  // Загружаем события и задачи
+  await Promise.all([
+    taskStore.tasks.length === 0 ? taskStore.fetchTasks() : Promise.resolve(),
+    eventStore.events.length === 0
+      ? eventStore.fetchEvents()
+      : Promise.resolve(),
+  ]);
+
+  // Синхронизируем задачи с календарем
+  await syncTasksWithCalendar();
+  console.log("Загрузка завершена. События календаря:", eventStore.events);
+  console.log("Предстоящие задачи:", upcomingTasks.value);
 });
 
 // Получаем события из хранилища с учетом активного режима просмотра
@@ -249,6 +325,38 @@ const upcomingEvents = computed(() => {
       return dateA.getTime() - dateB.getTime();
     })
     .slice(0, 5); // Ограничиваем 5 ближайшими событиями
+});
+
+// Только активные задачи с дедлайном в ближайшие 7 дней (но не более 5 задач)
+const upcomingTasks = computed(() => {
+  const today = startOfDay(new Date());
+  const nextWeek = addDays(today, 7);
+
+  return taskStore.tasks
+    .filter((task: Task) => {
+      // Фильтруем только незавершенные задачи с дедлайном
+      if (task.completed || !task.dueDate) return false;
+
+      const dueDate = parseISO(task.dueDate);
+      // Задачи с дедлайном в промежутке от сегодня до следующей недели
+      return (
+        (isAfter(dueDate, today) || isSameDay(dueDate, today)) &&
+        !isAfter(dueDate, nextWeek)
+      );
+    })
+    .sort((a: Task, b: Task) => {
+      // Сортировка сначала по дате, затем по приоритету
+      const dateA = new Date(a.dueDate);
+      const dateB = new Date(b.dueDate);
+      const dateDiff = dateA.getTime() - dateB.getTime();
+
+      if (dateDiff !== 0) return dateDiff;
+
+      // Если даты одинаковые, сортируем по приоритету
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    })
+    .slice(0, 5); // Ограничиваем 5 ближайшими задачами
 });
 
 // Задаем режим отображения
@@ -363,6 +471,106 @@ const clearAllEvents = async () => {
     }
   } catch (error) {
     console.error("Ошибка при удалении событий:", error);
+  }
+};
+
+// Функция для синхронизации задач с календарем
+const syncTasksWithCalendar = async () => {
+  try {
+    console.log("Синхронизация задач с календарем...");
+    console.log("Количество задач:", taskStore.tasks.length);
+
+    // Перебираем все задачи
+    for (const task of taskStore.tasks) {
+      // Пропускаем задачи без срока
+      if (!task.dueDate) {
+        console.log(`Задача без срока, пропускаем: ${task.title}`);
+        continue;
+      }
+
+      // Проверяем, есть ли уже событие для этой задачи в календаре
+      const taskEventId = `task-${task.id}`;
+      const existingEvent = eventStore.events.find(
+        (event) => event.externalId === taskEventId
+      );
+
+      if (!existingEvent) {
+        console.log(
+          `Создаем событие для задачи: ${task.title} (ID: ${task.id})`
+        );
+
+        // Используем функцию taskToEvent для создания события из задачи
+        const eventData = taskToEvent(task);
+        console.log("Данные события:", eventData);
+
+        await eventStore.addEvent(eventData);
+      } else {
+        console.log(`Событие для задачи ${task.title} уже существует`);
+      }
+    }
+
+    console.log(
+      "Синхронизация завершена. События календаря:",
+      eventStore.events
+    );
+  } catch (error) {
+    console.error("Ошибка при синхронизации задач с календарем:", error);
+  }
+};
+
+// Добавляем наблюдатель за изменениями в задачах
+watch(
+  () => taskStore.tasks,
+  async () => {
+    console.log("Задачи изменились, синхронизируем с календарем");
+    await syncTasksWithCalendar();
+  },
+  { deep: true }
+);
+
+// Метод для перехода к редактированию задачи
+const handleTaskEdit = (task: Task) => {
+  // Перенаправление на страницу задач с передачей ID задачи для редактирования
+  window.location.href = `/tasks?edit=${task.id}`;
+};
+
+// Методы для отображения информации о приоритете задачи
+const getPriorityText = (priority: string): string => {
+  switch (priority) {
+    case "high":
+      return "Высокий";
+    case "medium":
+      return "Средний";
+    case "low":
+      return "Низкий";
+    default:
+      return "Обычный";
+  }
+};
+
+const getPriorityClass = (priority: string): string => {
+  switch (priority) {
+    case "high":
+      return "bg-red-100 text-red-800";
+    case "medium":
+      return "bg-yellow-100 text-yellow-800";
+    case "low":
+      return "bg-green-100 text-green-800";
+    default:
+      return "bg-blue-100 text-blue-800";
+  }
+};
+
+const getPriorityIcon = (priority: string): string => {
+  switch (priority) {
+    case "high":
+      return "fas fa-exclamation-circle";
+    case "medium":
+      return "fas fa-exclamation";
+    case "low":
+      return "fas fa-arrow-down";
+    default:
+      return "fas fa-tasks";
   }
 };
 </script>
